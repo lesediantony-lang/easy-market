@@ -1,0 +1,36 @@
+name: Build Android APK
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java Environment
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Install Project Dependencies
+        run: npm install
+
+      - name: Compile Web Assets
+        run: npm run build
+
+      - name: Sync Capacitor Code
+        run: npx cap sync android
+
+      - name: Build Standalone APK via Gradle
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload Finished APK File
+        uses: actions/upload-artifact@v4
+        with:
+          name: EasyMarket-App
+          path: android/app/build/outputs/apk/debug/app-debug.apk
